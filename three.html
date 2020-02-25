@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Falling Ball on threejs</title>
+		<style>
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+		<!-- Code Written by Kohei Matsumura <matsumur@acm.org> -->
+
+		<script>
+			const GROUND_THICKNESS = 1.0;
+			const BALL_RADIUS = 0.5; 
+			const BALL_INITIAL_POSITION = {x:0.0, y:20.0, z:0.0};
+			const GRAVITY = -9.8;
+			const CoR = 0.8;
+			
+			var clock = new THREE.Clock(false);
+			var delta = 0.0;
+			var ball_velocity = {x:0.0, y:0.0};
+			
+			
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 50 );
+			camera.position.y = 10;
+			camera.position.z = 30;
+
+			var renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setClearColor( 0x000000, 1 );
+			renderer.shadowMap.enabled = true; 
+			
+			document.body.appendChild( renderer.domElement );
+
+			var lights = [];
+			lights[0] = new THREE.PointLight( 0xffffff, 1, 0 );
+			lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
+			lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
+
+			lights[0].position.set( 0, 200, 0 );
+			lights[1].position.set( 100, 200, 100 );
+			lights[2].position.set( - 100, - 200, - 100 );
+		
+			lights[1].castShadow = true; 
+	
+			lights[1].shadow.mapSize.width = 2048;
+			lights[1].shadow.mapSize.height = 2048;
+
+			scene.add(lights[0]);
+			scene.add(lights[1]);
+			scene.add(lights[2]);
+
+
+			// ball:sphere
+			var ballGeometry = new THREE.SphereGeometry( BALL_RADIUS, 64, 64 );
+			var ballMaterial = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, side: THREE.DoubleSide, flatShading: true } );
+			var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+			ball.position.y = BALL_INITIAL_POSITION.y;
+			ball.castShadow = true;
+			scene.add(ball);
+			
+			// ground:cube
+			var cubeGeometry = new THREE.CubeGeometry(30, GROUND_THICKNESS, 10);
+			var cubeMaterial = new THREE.MeshLambertMaterial( { color: 0x666666 } )
+			var ground = new THREE.Mesh( cubeGeometry, cubeMaterial );
+			ground.position.y = GROUND_THICKNESS;
+			ground.receiveShadow = true;
+			scene.add(ground);
+			
+			let animate = () =>  {
+				
+				delta = clock.getDelta();
+
+				if(ball.position.y < 2.0 && ball_velocity.y <= 0) {
+					ball_velocity.y = 0.0;
+				}else{
+					ball_velocity.x = 0.0;
+					ball_velocity.y += GRAVITY * delta;
+				}
+				
+				ball.position.x = ball.position.x;
+				ball.position.y += ball_velocity.y * delta;
+				
+				requestAnimationFrame(animate);
+			};
+
+			const render = () => {
+				requestAnimationFrame( render );
+				renderer.render( scene, camera );
+			};
+
+			window.addEventListener( 'resize',  () => {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}, false );
+
+			window.setInterval( () => {
+				console.log(clock.getElapsedTime() + ", " + ball.position.y);
+			},100);
+
+			requestAnimationFrame(animate);
+			render();
+			clock.start();
+						
+		</script>
+	</body>
+</html
